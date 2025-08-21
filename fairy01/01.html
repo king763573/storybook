@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>童樂故事屋 - 英文故事書</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #FFFBEB;
+        }
+        .btn-cartoon {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border-width: 4px;
+            font-weight: bold;
+            border-radius: 1.5rem;
+        }
+        .btn-cartoon:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .story-card, .song-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 1.5rem;
+            border: 4px solid #fff;
+        }
+        .story-card:hover, .song-card:hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        ::-webkit-scrollbar { display: none; }
+        .page { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #bgVideo { z-index: -10; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <video autoplay muted id="bgVideo" class="fixed top-0 left-0 w-full h-full object-cover opacity-80">
+        <source src="13.mp4" type="video/mp4">
+        您的瀏覽器不支援影片標籤。
+    </video>
+
+    <div id="hitCounter" class="fixed top-4 left-4 z-50">
+        <!-- hitwebcounter Code START -->
+        <a href="https://www.hitwebcounter.com" target="_blank">
+        <img src="https://hitwebcounter.com/counter/counter.php?page=21434072&style=0001&nbdigits=5&type=page&initCount=0" title="Pdf Counter Converter" Alt="Counter Pdf Word Tool"   border="0" /></a>
+    </div>
+    
+    <div id="controlPanel" class="fixed top-4 right-4 z-50 flex items-center gap-3">
+        <button id="muteToggleBtn" class="btn-cartoon bg-white text-gray-700 border-gray-300 px-4 py-2 text-lg hidden">🔊</button>
+        <button id="langToggleBtn" class="btn-cartoon bg-white text-gray-700 border-gray-300 px-4 py-2 text-sm">EN</button>
+        <button id="fullscreenToggleBtn" class="btn-cartoon bg-white text-gray-700 border-gray-300 px-4 py-2 text-lg">↗️</button>
+    </div>
+
+    <div id="app" class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden relative">
+
+        <!-- 首頁 (Home) -->
+        <div id="homePage" class="page w-full max-w-4xl text-center">
+            <header class="mb-8">
+                <h1 data-translate-key="homeTitle" class="text-5xl sm:text-6xl md:text-7xl font-bold text-amber-600" style="text-shadow: 3px 3px 0px #fff, 6px 6px 0px #FBBF24;">童樂故事屋</h1>
+                <p data-translate-key="homeSubtitle" class="text-xl sm:text-2xl text-cyan-600 mt-4">Story Wonderland</p>
+            </header>
+            <main class="grid grid-cols-2 gap-6">
+                <button id="enterLibraryBtn" class="btn-cartoon bg-sky-400 text-white border-sky-600 p-6 md:p-8 text-xl sm:text-2xl flex flex-col items-center justify-center">
+                    <span class="text-5xl mb-3">🏰</span>
+                    <span data-translate-key="enterLibrary">進入故事世界</span>
+                </button>
+                <button id="enterSongPageBtn" class="btn-cartoon bg-pink-400 text-white border-pink-600 p-6 md:p-8 text-xl sm:text-2xl flex flex-col items-center justify-center">
+                    <span class="text-5xl mb-3">🎶</span>
+                    <span data-translate-key="enterSong">聽一首兒歌</span>
+                </button>
+                <button id="recommendStoryBtn" class="btn-cartoon bg-emerald-400 text-white border-emerald-600 p-6 md:p-8 text-xl sm:text-2xl flex flex-col items-center justify-center">
+                    <span class="text-5xl mb-3">⭐</span>
+                    <span data-translate-key="recommendStory">今日推薦</span>
+                </button>
+                <button id="enterDreamFactoryBtn" class="btn-cartoon bg-orange-400 text-white border-orange-600 p-6 md:p-8 text-xl sm:text-2xl flex flex-col items-center justify-center">
+                    <span class="text-5xl mb-3">✨</span>
+                    <span data-translate-key="enterDreamFactory">魔法童話夢工廠</span>
+                </button>
+            </main>
+            <footer class="text-xs text-gray-500 mt-12">
+                音樂版權屬原創所有,純分享勿商用,作者:ping 初版
+            </footer>
+        </div>
+
+        <!-- 故事選單 (Story Library) -->
+        <div id="libraryPage" class="page hidden w-full max-w-6xl">
+            <header class="flex items-center justify-between mb-8">
+                <button id="backToHomeFromLibraryBtn" class="btn-cartoon bg-orange-400 text-white border-orange-600 px-6 py-3 text-xl">
+                    <span data-translate-key="backToHome">🏠 返回首頁</span>
+                </button>
+                <h2 data-translate-key="libraryTitle" class="text-4xl sm:text-5xl font-bold text-amber-600" style="text-shadow: 2px 2px 0px #fff, 4px 4px 0px #FBBF24;">故事分類</h2>
+                <div></div>
+            </header>
+            
+            <div class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-lg shadow-md text-left">
+                <p data-translate-key="geminiReminderTitle" class="font-bold text-lg text-yellow-900">溫馨提醒</p>
+                <p data-translate-key="geminiReminderText" class="mt-1">※ <strong>需有登錄Google Gemini 帳號才能聽故事書。</strong></p>
+                <div class="mt-3 text-sm border-t border-yellow-300 pt-3">
+                    <p data-translate-key="geminiHowToTitle" class="font-semibold"></p>
+                    <ol class="list-decimal list-inside ml-2 mt-1 space-y-1">
+                        <li data-translate-key="geminiStep1"></li>
+                        <li data-translate-key="geminiStep2"></li>
+                    </ol>
+                    <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer" 
+                       data-translate-key="geminiButton"
+                       class="inline-block mt-3 px-4 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors">
+                    </a>
+                </div>
+            </div>
+
+            <div id="storyCategories" class="space-y-10"></div>
+        </div>
+        
+        <!-- 兒歌選單 (Song Page) -->
+        <div id="songPage" class="page hidden w-full max-w-4xl">
+             <header class="flex items-center justify-between mb-8">
+                <button id="backToHomeFromSongBtn" class="btn-cartoon bg-orange-400 text-white border-orange-600 px-6 py-3 text-xl">
+                    <span data-translate-key="backToHome">🏠 返回首頁</span>
+                </button>
+                <h2 data-translate-key="songTitle" class="text-4xl sm:text-5xl font-bold text-amber-600" style="text-shadow: 2px 2px 0px #fff, 4px 4px 0px #FBBF24;">兒歌點唱機</h2>
+                <div></div>
+            </header>
+            <div id="songListContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
+        </div>
+    </div>
+
+    <!-- 提示訊息 Modal -->
+    <div id="alertModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl p-8 text-center shadow-2xl max-w-sm w-full transform transition-all scale-95">
+            <div id="modalIcon" class="text-6xl mb-4"></div>
+            <h3 id="modalTitle" class="text-2xl font-bold mb-2"></h3>
+            <p id="modalMessage" class="text-gray-600 mb-6"></p>
+            <button id="closeModalBtn" class="btn-cartoon bg-yellow-400 text-yellow-800 border-yellow-600 px-8 py-3 text-lg">知道了</button>
+        </div>
+    </div>
+    
+    <!-- 歡迎彈窗 -->
+    <div id="welcomeModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl p-8 text-center shadow-2xl max-w-sm w-full transform transition-all">
+            <div class="text-6xl mb-4">🎵</div>
+            <h3 data-translate-key="welcomeTitle" class="text-2xl font-bold mb-2">歡迎來到童樂故事屋</h3>
+            <p data-translate-key="welcomeMessage" class="text-gray-600 mb-6">是否要開啟背景音樂，享受更棒的體驗？</p>
+            <div class="flex justify-center gap-4">
+                <button id="startWithMusicBtn" class="btn-cartoon bg-emerald-400 text-white border-emerald-600 px-6 py-3 text-lg">開啟音樂</button>
+                <button id="startWithoutMusicBtn" class="btn-cartoon bg-gray-300 text-gray-700 border-gray-400 px-6 py-3 text-lg">保持安靜</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- audioPlayer 用於兒歌點唱機 -->
+    <audio id="audioPlayer"></audio>
+    <!-- bgMusicPlayer 用於首頁背景音樂 -->
+    <audio id="bgMusicPlayer" src="03.mp3" loop></audio>
+
+
+    <script>
+        // --- DOM 元素 ---
+        const bgVideo = document.getElementById('bgVideo');
+        const homePage = document.getElementById('homePage');
+        const libraryPage = document.getElementById('libraryPage');
+        const songPage = document.getElementById('songPage');
+        const langToggleBtn = document.getElementById('langToggleBtn');
+        const fullscreenToggleBtn = document.getElementById('fullscreenToggleBtn');
+        const muteToggleBtn = document.getElementById('muteToggleBtn');
+        const hitCounter = document.getElementById('hitCounter');
+        const storyCategoriesContainer = document.getElementById('storyCategories');
+        const songListContainer = document.getElementById('songListContainer');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const bgMusicPlayer = document.getElementById('bgMusicPlayer');
+        const alertModal = document.getElementById('alertModal');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const welcomeModal = document.getElementById('welcomeModal');
+        const startWithMusicBtn = document.getElementById('startWithMusicBtn');
+        const startWithoutMusicBtn = document.getElementById('startWithoutMusicBtn');
+        const enterLibraryBtn = document.getElementById('enterLibraryBtn');
+        const enterSongPageBtn = document.getElementById('enterSongPageBtn');
+        const recommendStoryBtn = document.getElementById('recommendStoryBtn');
+        const enterDreamFactoryBtn = document.getElementById('enterDreamFactoryBtn');
+        const backToHomeFromLibraryBtn = document.getElementById('backToHomeFromLibraryBtn');
+        const backToHomeFromSongBtn = document.getElementById('backToHomeFromSongBtn');
+        
+        // --- 背景影片列表 ---
+        const backgroundVideos = ['13.mp4', '14.mp4', '15.mp4'];
+        let currentVideoIndex = 0;
+
+
+        // --- 語言與翻譯資料 ---
+        let currentLanguage = 'zh';
+        const translations = {
+            homeTitle: { zh: '童樂故事屋', en: 'Story Wonderland' },
+            homeSubtitle: { zh: 'Story Wonderland', en: 'Your magical story house' },
+            enterLibrary: { zh: '進入故事世界', en: 'Enter Story World' },
+            enterSong: { zh: '聽一首兒歌', en: 'Listen to a Song' },
+            recommendStory: { zh: '今日推薦', en: 'Recommendation' },
+            enterDreamFactory: { zh: '魔法童話夢工廠', en: 'Magic Dream Factory' },
+            backToHome: { zh: '🏠 返回首頁', en: '🏠 Back to Home' },
+            libraryTitle: { zh: '故事分類', en: 'Story Categories' },
+            songTitle: { zh: '兒歌點唱機', en: 'Nursery Rhymes Jukebox' },
+            geminiReminderTitle: { zh: '溫馨提醒', en: 'Friendly Reminder' },
+            geminiReminderText: { zh: '※ <strong>需有登錄Google Gemini 帳號才能聽故事書。</strong>', en: '※ <strong>You need to be logged into a Google Gemini account to listen to the stories.</strong>' },
+            geminiHowToTitle: { zh: '如何登錄 Gemini？', en: 'How to log in to Gemini?' },
+            geminiStep1: { zh: '點擊下方連結前往 Gemini 官方網站。', en: 'Click the link below to go to the official Gemini website.' },
+            geminiStep2: { zh: '使用您的 Google 帳號登入即可開始使用。', en: 'Log in with your Google Account to get started.' },
+            geminiButton: { zh: '前往 Gemini 官方網站 &rarr;', en: 'Go to Gemini Official Website &rarr;' },
+            welcomeTitle: { zh: '歡迎來到童樂故事屋', en: 'Welcome to Story Wonderland' },
+            welcomeMessage: { zh: '是否要開啟背景音樂，享受更棒的體驗？', en: 'Enable background music for a better experience?' },
+            welcomeBtnOn: { zh: '開啟音樂', en: 'Turn on Music' },
+            welcomeBtnOff: { zh: '保持安靜', en: 'Keep it Quiet' },
+            modalCloseBtn: { zh: '知道了', en: 'Got it' },
+            recommendModalTitle: { zh: '今日推薦', en: 'Today\'s Pick' },
+            recommendModalText: { zh: '為您推薦《{book}》！點擊「知道了」之後將為您打開故事書。', en: 'We recommend "{book}" for you! Click "Got it" to open the storybook.' },
+            playingModalTitle: { zh: '正在播放', en: 'Now Playing' },
+            playErrorModalTitle: { zh: '播放失敗', en: 'Playback Failed' },
+            playErrorModalText: { zh: '無法播放這首歌曲，請稍後再試。', en: 'Could not play this song, please try again later.' }
+        };
+        
+        // --- 故事資料 ---
+        const stories = [
+            { category: {zh: '🐶 動物故事', en: 'Animal Tales'}, color: 'bg-blue-400', books: [
+                { title: {zh: '迷路的小貓', en: 'The Lost Kitten'}, link: 'https://g.co/gemini/share/6dc5a80d1aea', emoji: '🐱' },
+                { title: {zh: '聰明的小猴子', en: 'The Clever Monkey'}, link: 'https://g.co/gemini/share/220522d68759', emoji: '🐵' },
+                { title: {zh: '勇敢的小狗', en: 'The Brave Puppy'}, link: 'https://g.co/gemini/share/ee6ddd37fc38', emoji: '🐶' }
+            ]},
+            { category: {zh: '👸 公主與冒險', en: 'Princess & Adventure'}, color: 'bg-pink-400', books: [
+                { title: {zh: '公主與星星', en: 'The Princess and the Star'}, link: 'https://g.co/gemini/share/8044c071a82c', emoji: '⭐' },
+                { title: {zh: '公主與海盜', en: 'The Princess and the Pirate'}, link: 'https://g.co/gemini/share/460ad21f5d0d', emoji: '🏴‍☠️' },
+                { title: {zh: '公主與巨人', en: 'The Princess and the Giant'}, link: 'https://g.co/gemini/share/c7b0c7f59c0e', emoji: '👣' }
+            ]},
+            { category: {zh: '🚀 魔法與幻想', en: 'Magic & Fantasy'}, color: 'bg-purple-400', books: [
+                { title: {zh: '小小魔法師', en: 'The Little Wizard'}, link: 'https://g.co/gemini/share/3c70b4c9b285', emoji: '🧙' },
+                { title: {zh: '會飛的掃帚', en: 'The Flying Broom'}, link: 'https://g.co/gemini/share/f84e66cd0cda', emoji: '🧹' },
+                { title: {zh: '友善的龍', en: 'The Friendly Dragon'}, link: 'https://g.co/gemini/share/744a8cc38444', emoji: '🐲' }
+            ]},
+            { category: {zh: '🎉 日常生活', en: 'Everyday Fun'}, color: 'bg-green-400', books: [
+                { title: {zh: '公園的一天', en: 'A Day at the Park'}, link: 'https://g.co/gemini/share/c9b5e936a521', emoji: '🌳' },
+                { title: {zh: '幫忙媽媽', en: 'Helping Mommy'}, link: 'https://g.co/gemini/share/aa217c1ab3d8', emoji: '👩‍👧' },
+                { title: {zh: '睡前故事', en: 'Bedtime Story'}, link: 'https://g.co/gemini/share/610c03f8e617', emoji: '🌙' }
+            ]},
+            { category: {zh: '🐵 西遊記', en: 'Journey to the West'}, color: 'bg-red-500', books: [
+                { title: {zh: '孫悟空的誕生', en: 'Monkey King is Born'}, link: 'https://g.co/gemini/share/8d5b4d17fc29', emoji: '📖' },
+                { title: {zh: '孫悟空得金箍棒', en: 'Monkey and the Dragon King'}, link: 'https://g.co/gemini/share/0e35ee0cbe62', emoji: '📖' },
+                { title: {zh: '西天取經開始', en: 'The Pilgrimage Begins'}, link: 'https://g.co/gemini/share/b00c76abff1d', emoji: '📖' }
+            ]},
+            { category: {zh: '⚔️ 三國演義', en: 'Romance of the Three Kingdoms'}, color: 'bg-teal-600', books: [
+                { title: {zh: '桃園三結義', en: 'The Peach Garden Oath'}, link: 'https://g.co/gemini/share/a07b65c68771', emoji: '📖' },
+                { title: {zh: '赤壁之戰', en: 'The Battle of Red Cliff'}, link: 'https://g.co/gemini/share/76d51f452273', emoji: '📖' },
+                { title: {zh: '趙雲救阿斗', en: 'Zhao Yun Saves the Baby'}, link: 'https://g.co/gemini/share/4c489e783b37', emoji: '📖' }
+            ]}
+        ];
+        
+        // --- 兒歌資料 ---
+        const songs = [
+            { title: { zh: '豆豆龍', en: 'Totoro Song'}, file: '01.mp3', emoji: '🐲', color: 'bg-green-500' },
+            { title: { zh: '英文字母歌', en: 'ABC Song'}, file: '02.mp3', emoji: '🔤', color: 'bg-red-500' },
+            { title: { zh: '英文版童年', en: 'Childhood (EN)'}, file: '03.mp3', emoji: '🎤', color: 'bg-blue-500' },
+            { title: { zh: '中文版童年', en: 'Childhood (ZH)'}, file: '04.mp3', emoji: '🎶', color: 'bg-yellow-500' },
+            { title: { zh: '最美的光', en: 'The Most Beautiful Light'}, file: '05.mp3', emoji: '✨', color: 'bg-indigo-500' },
+            { title: { zh: '龍貓', en: 'My Neighbor Totoro'}, file: '06.mp3', emoji: '🐾', color: 'bg-gray-500' },
+            { title: { zh: '蝸牛與黃鸝鳥', en: 'Snail and Oriole'}, file: '07.mp3', emoji: '🐌', color: 'bg-orange-500' },
+            { title: { zh: '魯冰花', en: 'Lupin Flower'}, file: '08.mp3', emoji: '🌸', color: 'bg-rose-500' },
+            { title: { zh: '倫敦大橋', en: 'London Bridge'}, file: '09.mp3', emoji: '🌉', color: 'bg-cyan-500' },
+            { title: { zh: '小星星', en: 'Twinkle Star'}, file: '10.mp3', emoji: '🌟', color: 'bg-amber-500' },
+            { title: { zh: 'Bingo', en: 'Bingo'}, file: '11.mp3', emoji: '🐶', color: 'bg-lime-500' },
+            { title: { zh: 'Jingle Bells', en: 'Jingle Bells'}, file: '12.mp3', emoji: '🔔', color: 'bg-red-600' }
+        ];
+
+        // --- 功能函式 ---
+
+        function updateLanguage() {
+            document.querySelectorAll('[data-translate-key]').forEach(el => {
+                const key = el.dataset.translateKey;
+                if (translations[key]) el.innerHTML = translations[key][currentLanguage];
+            });
+            // ===== 修正: 補上 ? 符號 =====
+            langToggleBtn.textContent = currentLanguage === 'zh' ? 'EN' : '中';
+            closeModalBtn.textContent = translations.modalCloseBtn[currentLanguage];
+            startWithMusicBtn.textContent = translations.welcomeBtnOn[currentLanguage];
+            startWithoutMusicBtn.textContent = translations.welcomeBtnOff[currentLanguage];
+            createLibrary();
+            createSongList();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
+            else if (document.exitFullscreen) document.exitFullscreen();
+        }
+        
+        function updateFullscreenButton() {
+            fullscreenToggleBtn.textContent = document.fullscreenElement ? '↙️' : '↗️';
+        }
+
+        function updateMuteButton() {
+            muteToggleBtn.textContent = bgMusicPlayer.muted ? '🔇' : '🔊';
+        }
+
+        function showPage(pageToShow) {
+            [homePage, libraryPage, songPage].forEach(p => p.classList.add('hidden'));
+            
+            audioPlayer.pause();
+            
+            if (pageToShow === homePage) {
+                hitCounter.classList.remove('hidden');
+                muteToggleBtn.classList.remove('hidden');
+                bgVideo.style.display = 'block';
+                if (bgVideo.paused) {
+                    bgVideo.play().catch(e => console.warn("Video play failed, waiting for user interaction."));
+                }
+                if (!bgMusicPlayer.muted) {
+                    bgMusicPlayer.play().catch(e => console.warn("BG Music play failed, waiting for user interaction."));
+                }
+            } else {
+                hitCounter.classList.add('hidden');
+                muteToggleBtn.classList.add('hidden');
+                bgVideo.pause();
+                bgVideo.style.display = 'none';
+                bgMusicPlayer.pause();
+            }
+            pageToShow.classList.remove('hidden');
+        }
+
+        function showAlert(icon, titleKey, message) {
+            modalIcon.textContent = icon;
+            modalTitle.textContent = translations[titleKey] ? translations[titleKey][currentLanguage] : titleKey;
+            modalMessage.textContent = message;
+            alertModal.classList.remove('hidden');
+            alertModal.querySelector('div > div').classList.add('scale-100');
+        }
+        
+        function createLibrary() {
+            storyCategoriesContainer.innerHTML = '';
+            stories.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                const title = document.createElement('h3');
+                title.className = `text-3xl font-bold text-white p-4 rounded-t-2xl ${category.color}`;
+                title.textContent = category.category[currentLanguage];
+                categoryDiv.appendChild(title);
+                const booksGrid = document.createElement('div');
+                booksGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-white/70 rounded-b-2xl shadow-lg';
+                category.books.forEach(book => {
+                    const bookLink = document.createElement('a');
+                    bookLink.href = book.link;
+                    bookLink.target = '_blank';
+                    bookLink.rel = 'noopener noreferrer';
+                    bookLink.className = `story-card ${category.color} p-6 flex flex-col items-center justify-center text-center text-white cursor-pointer`;
+                    bookLink.innerHTML = `<div class="text-7xl mb-4">${book.emoji}</div><h4 class="text-xl font-bold">${book.title[currentLanguage]}</h4><p class="text-lg">${book.title[currentLanguage === 'zh' ? 'en' : 'zh']}</p>`;
+                    booksGrid.appendChild(bookLink);
+                });
+                categoryDiv.appendChild(booksGrid);
+                storyCategoriesContainer.appendChild(categoryDiv);
+            });
+        }
+        function createSongList() {
+            songListContainer.innerHTML = '';
+            songs.forEach(song => {
+                const songButton = document.createElement('button');
+                songButton.className = `song-card ${song.color} p-4 flex flex-col items-center justify-center text-center text-white cursor-pointer aspect-square`;
+                songButton.innerHTML = `<div class="text-5xl sm:text-6xl mb-2">${song.emoji}</div><h4 class="text-lg sm:text-xl font-bold">${song.title[currentLanguage]}</h4>`;
+                songButton.addEventListener('click', () => {
+                    audioPlayer.src = song.file;
+                    audioPlayer.play().catch(error => {
+                        console.error("Playback error:", error);
+                        showAlert('😢', 'playErrorModalTitle', translations.playErrorModalText[currentLanguage]);
+                    });
+                    showAlert('🎧', 'playingModalTitle', song.title[currentLanguage]);
+                });
+                songListContainer.appendChild(songButton);
+            });
+        }
+        
+        function playNextVideo() {
+            currentVideoIndex = (currentVideoIndex + 1) % backgroundVideos.length;
+            bgVideo.src = backgroundVideos[currentVideoIndex];
+            bgVideo.load();
+            bgVideo.play().catch(e => console.error("Error playing next video:", e));
+        }
+
+
+        // --- 事件監聽 ---
+        langToggleBtn.addEventListener('click', () => {
+            currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
+            updateLanguage();
+        });
+        fullscreenToggleBtn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        enterLibraryBtn.addEventListener('click', () => showPage(libraryPage));
+        enterSongPageBtn.addEventListener('click', () => showPage(songPage));
+        backToHomeFromLibraryBtn.addEventListener('click', () => showPage(homePage));
+        backToHomeFromSongBtn.addEventListener('click', () => showPage(homePage));
+        closeModalBtn.addEventListener('click', () => {
+            alertModal.querySelector('div > div').classList.remove('scale-100');
+            alertModal.classList.add('hidden');
+        });
+        
+        bgVideo.addEventListener('ended', playNextVideo);
+
+        muteToggleBtn.addEventListener('click', () => {
+            bgMusicPlayer.muted = !bgMusicPlayer.muted;
+            if (!bgMusicPlayer.muted && homePage.classList.contains('hidden') === false) {
+                 bgMusicPlayer.play().catch(e => console.warn("BG Music play failed on unmute."));
+            } else {
+                 bgMusicPlayer.pause();
+            }
+            updateMuteButton();
+        });
+
+        recommendStoryBtn.addEventListener('click', () => {
+            bgVideo.pause();
+            bgMusicPlayer.pause();
+            
+            const allBooks = stories.flatMap(category => category.books);
+            const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
+            const message = translations.recommendModalText[currentLanguage].replace('{book}', randomBook.title[currentLanguage]);
+            showAlert('⭐', 'recommendModalTitle', message);
+            
+            const openStoryAndClose = () => {
+                window.open(randomBook.link, '_blank');
+                alertModal.classList.add('hidden');
+                if (!homePage.classList.contains('hidden')) {
+                    bgVideo.play();
+                    if (!bgMusicPlayer.muted) {
+                        bgMusicPlayer.play();
+                    }
+                }
+                closeModalBtn.removeEventListener('click', openStoryAndClose);
+            };
+            closeModalBtn.addEventListener('click', openStoryAndClose, { once: true });
+        });
+
+        enterDreamFactoryBtn.addEventListener('click', () => {
+            window.location.href = '02.html';
+        });
+
+        // --- 初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            bgMusicPlayer.muted = true;
+            
+            updateLanguage();
+            updateMuteButton();
+            
+            startWithMusicBtn.addEventListener('click', () => {
+                bgVideo.play().catch(e => console.warn("Initial video play failed."));
+                bgMusicPlayer.muted = false;
+                bgMusicPlayer.play().catch(e => console.warn("Initial BG music play failed."));
+                updateMuteButton();
+                welcomeModal.classList.add('hidden');
+            });
+
+            startWithoutMusicBtn.addEventListener('click', () => {
+                bgVideo.play().catch(e => console.warn("Initial video play failed."));
+                welcomeModal.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
